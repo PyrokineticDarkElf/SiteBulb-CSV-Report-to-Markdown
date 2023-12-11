@@ -32,15 +32,15 @@ CONFIG = {
         'XML Sitemaps': '🗺️'
     },
     'src_column': 'Learn More',  # Source column for the merge
-    'map_column': 'Learn More ML',  # Map column for the merge
+    'map_column': 'Learn More Custom',  # Map column for the merge
     # Fallback mapping
     'column_fallbacks': {
-        'Section ML': {'fallback_column': 'Section'}, # The column Section ML falls back to Section
-        'Hint ML': {'fallback_column': 'Hint'}, # The column Hint ML falls back to Hint
-        'Learn More ML': {'fallback_column': 'Learn More'}, # The column Learn More ML falls back to Learn More
-        'Importance ML': {'fallback_column': 'Importance', 'remove_non_alpha': True, 'replace': {'None': 'No Issue'}}, # The column Importance ML falls back to Importance with aditional options to remove text and replace text
-        'Type ML': {'fallback_column': 'Warning Type', 'remove_non_alpha': True}, # The column Type ML falls back to Warning Type with aditional options to remove text
-        'Description ML': {'replacement': 'Not Available'}, # The column Description ML falls back to text "Not Available"
+        'Section Custom': {'fallback_column': 'Section'}, # The column Section Custom falls back to Section
+        'Hint Custom': {'fallback_column': 'Hint'}, # The column Hint Custom falls back to Hint
+        'Learn More Custom': {'fallback_column': 'Learn More'}, # The column Learn More Custom falls back to Learn More
+        'Importance Custom': {'fallback_column': 'Importance', 'remove_non_alpha': True, 'replace': {'None': 'No Issue'}}, # The column Importance Custom falls back to Importance with aditional options to remove text and replace text
+        'Type Custom': {'fallback_column': 'Warning Type', 'remove_non_alpha': True}, # The column Type Custom falls back to Warning Type with aditional options to remove text
+        'Description Custom': {'replacement': 'Not Available'}, # The column Description Custom falls back to text "Not Available"
     },
 }
 
@@ -96,14 +96,14 @@ def write_heading(md_file, heading_type, heading_value, emoji_map):
 
 def write_table_row(md_file, row, df_map):
     # Data mapping
-    hint = replace_special_characters(row.get("Hint ML", ""))
-    type_column = row.get("Type ML", "")
-    description_column = replace_special_characters(row.get("Description ML", ""))
+    hint = replace_special_characters(row.get("Hint Custom", ""))
+    type_column = row.get("Type Custom", "")
+    description_column = replace_special_characters(row.get("Description Custom", ""))
     urls_column = row.get("URLs", "")
     impacted_pages_column = row.get("Impacted Pages (%)", "")
-    learn_more_column = row.get("Learn More ML", "")
+    learn_more_column = row.get("Learn More Custom", "")
     sheet_url_column = row.get("Sheet URL", "")
-    importance_column = row.get("Importance ML", "")
+    importance_column = row.get("Importance Custom", "")
     # Add Links
     linked_hint = f"[{hint}]({learn_more_column})" if CONFIG['include_links'] == 'y' else hint
     linked_urls = f"[{urls_column}]({sheet_url_column})" if CONFIG['include_links'] == 'y' else urls_column
@@ -144,19 +144,19 @@ def create_markdown():
         process_fallbacks(df_merged, column, CONFIG['column_fallbacks'])
 
     # Order DataFrame based on "Custom Importance" column
-    if "Importance ML" in df_merged.columns:
-        df_merged.sort_values(by="Importance ML", key=lambda x: x.map(CONFIG['importance_order']), inplace=True, ascending=False)
+    if "Importance Custom" in df_merged.columns:
+        df_merged.sort_values(by="Importance Custom", key=lambda x: x.map(CONFIG['importance_order']), inplace=True, ascending=False)
 
     # Get unique section headings
-    unique_section_headings_ml = df_merged["Section ML"].unique() if "Section ML" in df_merged.columns else []
-    unique_section_headings_map = df_map["Section ML"].unique() if "Section ML" in df_map.columns else []
+    unique_section_headings_custom = df_merged["Section Custom"].unique() if "Section Custom" in df_merged.columns else []
+    unique_section_headings_map = df_map["Section Custom"].unique() if "Section Custom" in df_map.columns else []
 
     # Filter out sections with no hints
-    valid_sections = df_merged.loc[~df_merged["Hint ML"].isna(), "Section ML"].unique()
+    valid_sections = df_merged.loc[~df_merged["Hint Custom"].isna(), "Section Custom"].unique()
 
     unique_section_headings = (
-        [section for section in unique_section_headings_ml if section in valid_sections]
-        if len(unique_section_headings_ml) > 0 and all(pd.notna(x) for x in unique_section_headings_ml)
+        [section for section in unique_section_headings_custom if section in valid_sections]
+        if len(unique_section_headings_custom) > 0 and all(pd.notna(x) for x in unique_section_headings_custom)
         else [section for section in unique_section_headings_map if section in valid_sections]
     ) or df_merged["Section"].unique()
 
@@ -189,20 +189,20 @@ def write_section_md(output_md, df_merged, unique_section_headings, df_map):
 
         for section_heading in unique_section_headings:
             # Filter DataFrame for the current section heading
-            df_section = df_merged[df_merged["Section ML"] == section_heading]
+            df_section = df_merged[df_merged["Section Custom"] == section_heading]
             # Write section heading with emoji function
             emoji_map = CONFIG['section_emoji_map']
             heading_type = "#" if CONFIG['separate_files'].lower() == 'y' else "##"
             write_heading(md_file, heading_type, section_heading, emoji_map)
             
             # Get unique importance values within the section
-            unique_importance_values = df_section["Importance ML"].unique()
+            unique_importance_values = df_section["Importance Custom"].unique()
             print(f"Unique Importance Values: '{unique_importance_values}'")
 
             # Iterate through unique importance values
             for importance_value in unique_importance_values:
                 # Filter DataFrame for the current section and importance value
-                df_section_importance = df_section[df_section["Importance ML"] == importance_value]
+                df_section_importance = df_section[df_section["Importance Custom"] == importance_value]
                 
                 # Write importance heading with emoji function
                 emoji_map = CONFIG['importance_emoji_map']

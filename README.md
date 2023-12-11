@@ -1,7 +1,11 @@
-# SiteBulb-CSV-Report-to-Markdown
+# SiteBulb CSV Report to Markdown
 
 ## Overview
 This script generates markdown reports based on input CSV files containing data related to website issues. The generated reports include information about different sections, hints, types of warnings, and their respective details.
+
+The general usecase of this script would be to generate a custom report based an SiteBulb's provided data. You can get an export from SiteBulb containing lists of all the URLs that have issues.
+
+The roport can then be generated, linking items by type of issue, injecting emojis to represent section headings and importance values. and most importantly, offering you the ability to write your own custom Hints, Descriptions and links. This allows you to effectivly hide the origin of the data (SiteBulb), in favour of your own custom written descriptions and explination links.
 
 ## Prerequisites
 - Python 3.x
