@@ -66,7 +66,6 @@ def remove_non_alpha(text):
     return text
 
 # Fallback mapping
-# Fallback mapping
 def process_fallbacks(df, column, config):
     fallback_column = config.get(column, {}).get('fallback_column')
     remove_non_alpha_func = config.get(column, {}).get('remove_non_alpha', False)
@@ -219,5 +218,5 @@ def write_section_md(output_md, df_merged, unique_section_headings, df_map):
 
                 md_file.write("\n")
 
-# Make some sick ass reports!
+# Make some awesome reports!
 create_markdown()
