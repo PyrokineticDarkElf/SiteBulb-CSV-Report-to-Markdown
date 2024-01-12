@@ -8,8 +8,9 @@ CONFIG = {
     'input_folder': './input',
     'output_folder': './output',
     'data_folder': './data',
-    'length': 'long', # 'short' or 'long'
-    'separate_files': 'y', # 'y' or 'n'
+    'length': 'long', # 'short' or 'long' to control how much data is presented.
+    'separate_files': 'y', # 'y' or 'n' to create separate files for each section.
+    'section_title': 'n', # 'y' or 'n' to display a title for the section.
     'short_file_name': 'Report.md',
     'include_links': 'y', # 'y' or 'n'
     'importance_order': {'Critical': 5, 'High': 4, 'Medium': 3, 'Low': 2, 'No Issue': 1, 'Unknown': 0},
@@ -35,12 +36,12 @@ CONFIG = {
     'map_column': 'Learn More Custom',  # Map column for the merge
     # Fallback mapping
     'column_fallbacks': {
-        'Section Custom': {'fallback_column': 'Section'}, # The column Section Custom falls back to Section
-        'Hint Custom': {'fallback_column': 'Hint'}, # The column Hint Custom falls back to Hint
-        'Learn More Custom': {'fallback_column': 'Learn More'}, # The column Learn More Custom falls back to Learn More
-        'Importance Custom': {'fallback_column': 'Importance', 'remove_non_alpha': True, 'replace': {'None': 'No Issue'}}, # The column Importance Custom falls back to Importance with aditional options to remove text and replace text
-        'Type Custom': {'fallback_column': 'Warning Type', 'remove_non_alpha': True}, # The column Type Custom falls back to Warning Type with aditional options to remove text
-        'Description Custom': {'replacement': 'Not Available'}, # The column Description Custom falls back to text "Not Available"
+        'Section Custom': {'fallback_column': 'Section'}, # The column Section ML falls back to Section
+        'Hint Custom': {'fallback_column': 'Hint'}, # The column Hint ML falls back to Hint
+        'Learn More Custom': {'fallback_column': 'Learn More'}, # The column Learn More ML falls back to Learn More
+        'Importance Custom': {'fallback_column': 'Importance', 'remove_non_alpha': True, 'replace': {'None': 'No Issue'}}, # The column Importance ML falls back to Importance with additional options to remove text and replace text
+        'Type Custom': {'fallback_column': 'Warning Type', 'remove_non_alpha': True}, # The column Type ML falls back to Warning Type with additional options to remove text
+        'Description Custom': {'replacement': 'Not Available'}, # The column Description ML falls back to text "Not Available"
     },
 }
 
@@ -147,15 +148,15 @@ def create_markdown():
         df_merged.sort_values(by="Importance Custom", key=lambda x: x.map(CONFIG['importance_order']), inplace=True, ascending=False)
 
     # Get unique section headings
-    unique_section_headings_custom = df_merged["Section Custom"].unique() if "Section Custom" in df_merged.columns else []
+    unique_section_headings_ml = df_merged["Section Custom"].unique() if "Section Custom" in df_merged.columns else []
     unique_section_headings_map = df_map["Section Custom"].unique() if "Section Custom" in df_map.columns else []
 
     # Filter out sections with no hints
     valid_sections = df_merged.loc[~df_merged["Hint Custom"].isna(), "Section Custom"].unique()
 
     unique_section_headings = (
-        [section for section in unique_section_headings_custom if section in valid_sections]
-        if len(unique_section_headings_custom) > 0 and all(pd.notna(x) for x in unique_section_headings_custom)
+        [section for section in unique_section_headings_ml if section in valid_sections]
+        if len(unique_section_headings_ml) > 0 and all(pd.notna(x) for x in unique_section_headings_ml)
         else [section for section in unique_section_headings_map if section in valid_sections]
     ) or df_merged["Section"].unique()
 
@@ -189,10 +190,11 @@ def write_section_md(output_md, df_merged, unique_section_headings, df_map):
         for section_heading in unique_section_headings:
             # Filter DataFrame for the current section heading
             df_section = df_merged[df_merged["Section Custom"] == section_heading]
-            # Write section heading with emoji function
-            emoji_map = CONFIG['section_emoji_map']
-            heading_type = "#" if CONFIG['separate_files'].lower() == 'y' else "##"
-            write_heading(md_file, heading_type, section_heading, emoji_map)
+            if CONFIG['section_title'] == 'y':
+                # Write section heading with emoji function
+                emoji_map = CONFIG['section_emoji_map']
+                heading_type = "#" if CONFIG['separate_files'].lower() == 'y' else "##"
+                write_heading(md_file, heading_type, section_heading, emoji_map)
             
             # Get unique importance values within the section
             unique_importance_values = df_section["Importance Custom"].unique()
@@ -218,5 +220,5 @@ def write_section_md(output_md, df_merged, unique_section_headings, df_map):
 
                 md_file.write("\n")
 
-# Make some awesome reports!
+# Make some sick ass reports!
 create_markdown()
