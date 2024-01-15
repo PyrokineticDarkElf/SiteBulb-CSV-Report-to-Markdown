@@ -100,7 +100,7 @@ def write_table_row(md_file, row, df_map):
     type_column = row.get("Type Custom", "")
     description_column = replace_special_characters(row.get("Description Custom", ""))
     urls_column = row.get("URLs", "")
-    impacted_pages_column = row.get("Impacted Pages (%)", "")
+    impacted_pages_column = row.get("Coverage", "")
     learn_more_column = row.get("Learn More Custom", "")
     sheet_url_column = row.get("Sheet URL", "")
     importance_column = row.get("Importance Custom", "")
