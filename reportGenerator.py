@@ -7,9 +7,13 @@ from includes.config import CONFIG
 def load_csv(file_path):
     return pd.read_csv(file_path)
 
-def map_importance(value):
+def map_importance(value, query):
     importance_mapping = CONFIG['importance_map']
-    mapped_value = importance_mapping.get(value, {}).get('value', 0)
+
+    # If the value is not in the importance map, use the default values for 'Unknown'
+    default_values = importance_mapping.get('Unknown', {'name': 'Unknown', 'value': 0, 'emoji': '🟣'})
+    
+    mapped_value = importance_mapping.get(value, default_values).get(query, 0)
     print(f"Mapping Importance: Value={value}, Mapped Value={mapped_value}")
     return mapped_value
 
@@ -58,7 +62,7 @@ def create_markdown():
     df_map = load_csv(map_csv)
 
     # Map Importance values
-    df_input['importance_rank'] = df_input['Importance'].apply(map_importance)
+    df_input['importance_rank'] = df_input['Importance'].apply(lambda x: map_importance(x, query='value'))
 
     # Order DataFrame based on "importance_rank" column
     df_input.sort_values(by='importance_rank', ascending=False, inplace=True)
@@ -140,14 +144,15 @@ def write_table(md_file, df_section_importance, df_map):
 
 def write_extras_md(md_file, df_map_row):
     for column_header in CONFIG['extra_columns']:
-        heading_type = "####" if CONFIG['separate_files'].lower() == 'y' else "#####"
-        write_heading(md_file, heading_type, column_header, mapping=None)
         if not df_map_row.empty and column_header in df_map_row.columns:
             # Check if the column exists and the DataFrame is not empty
             values = df_map_row[column_header].values
             if len(values) > 0:
+                heading_type = "####" if CONFIG['separate_files'].lower() == 'y' else "#####"
+                write_heading(md_file, heading_type, column_header, mapping=None)
                 md_file.write(f"{values[0]} ")
-        md_file.write("\n")
+                md_file.write("\n")
+            md_file.write("\n")
 
 
 
@@ -167,7 +172,7 @@ def write_table_row(md_file, row, df_map):
         if pd.isna(hint):
             hint = row.get("Hint", "")
         if pd.isna(hint_type):
-            hint_type = row.get("Warning Type", "") # NEED TO RUN MAP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            hint_type = map_importance(row.get("Warning Type", ""), query='name')
         if pd.isna(description):
             description = row.get("Description", "")
         if pd.isna(learn_more):
@@ -175,7 +180,7 @@ def write_table_row(md_file, row, df_map):
     else:
         # Fallback to input data if df_map_row is empty
         hint = row.get("Hint", "")
-        hint_type = row.get("Warning Type", "") # NEED TO RUN MAP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        hint_type = map_importance(row.get("Warning Type", ""), query='name')
         description = row.get("Description", "")
         learn_more = row.get("Learn More", "")
 
