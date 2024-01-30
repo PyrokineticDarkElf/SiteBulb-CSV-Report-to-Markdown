@@ -101,8 +101,40 @@ CONFIG = {
         'XML Sitemaps': {
             'name': 'XML Sitemaps',
             'emoji': '🗺️'
+        },
+        'Unknown': {
+            'name': 'Unknown',
+            'emoji': '❓',
+            'value': 0,
         }
     },
+    'warning_type_map': {
+        '4 - Issue': {
+            'name': 'Issue',
+            #'emoji': '',
+            'value': 4
+        },
+        '3 - Potential Issue': {
+            'name': 'Potential Issue',
+            #'emoji': '',
+            'value': 3
+        },
+        '2 - Opportunity': {
+            'name': 'Opportunity',
+            #'emoji': '',
+            'value': 2
+        },
+        '1 - Insight': {
+            'name': 'Insight',
+            #'emoji': '',
+            'value': 1
+        },
+        'Unknown': {
+            'name': 'Unknown',
+            #'emoji': '',
+            'value': 0,
+        }
+    }
     #'match_columns': {
     #    'Learn More',
     #    'Hint'
