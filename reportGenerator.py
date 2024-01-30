@@ -7,20 +7,15 @@ from includes.config import CONFIG
 def load_csv(file_path):
     return pd.read_csv(file_path)
 
-def map_importance(value, query):
-    importance_mapping = CONFIG['importance_map']
-
+def map_values(value, query_map, query):
     # If the value is not in the importance map, use the default values for 'Unknown'
-    default_values = importance_mapping.get('Unknown', {'name': 'Unknown', 'value': 0, 'emoji': '🟣'})
+    default_values = next((values for values in query_map.values() if values.get(query, 0) == 0), {})
     
-    mapped_value = importance_mapping.get(value, default_values).get(query, 0)
+    mapped_value = query_map.get(value, default_values).get(query, 0)
     print(f"Mapping Importance: Value={value}, Mapped Value={mapped_value}")
     return mapped_value
 
 
-def map_section_emoji(section):
-    section_mapping = CONFIG['section_map']
-    return section_mapping.get(section, '')
 
 def find_input_csv():
     # List all files in the input folder
@@ -32,19 +27,12 @@ def find_input_csv():
     # If no CSV file is found, return None
     return None
 
-def write_heading(md_file, heading_weight, heading, mapping):
-    if mapping is None:
+def write_heading(md_file, heading_weight, heading, emoji):
+    if emoji != None:
+        compiled_heading = f"{heading_weight} {emoji}{heading}"
+    else:
         compiled_heading = f"{heading_weight} {heading}"
-        md_file.write(f"{compiled_heading}\n")
-        return
-    # Check if the heading value has an emoji mapping
-    map_data = mapping.get(heading, {})
-    emoji = map_data.get('emoji', '') + " " if map_data.get('emoji', '') is not None else ""
-    name = map_data.get('name', '')
-    print(f"Debug - Heading: {heading}, Emoji: {emoji}, Name: {name}")
-
     # Write heading with emoji
-    compiled_heading = f"{heading_weight} {emoji}{name}"
     print(f"Heading: {compiled_heading}")
     md_file.write(f"{compiled_heading}\n")
 
@@ -62,7 +50,7 @@ def create_markdown():
     df_map = load_csv(map_csv)
 
     # Map Importance values
-    df_input['importance_rank'] = df_input['Importance'].apply(lambda x: map_importance(x, query='value'))
+    df_input['importance_rank'] = df_input['Importance'].apply(lambda x: map_values(x, CONFIG['importance_map'], query='value'))
 
     # Order DataFrame based on "importance_rank" column
     df_input.sort_values(by='importance_rank', ascending=False, inplace=True)
@@ -107,9 +95,11 @@ def write_section_md(output_md, df_input, unique_sections, df_map):
             print(f"Section: {section}, DataFrame structure:\n{df_section}")
             if CONFIG['section_title'] == 'y':
                 # Write section heading with emoji function
-                mapping = CONFIG['section_map']
+                section_title = str(section)
+                heading = map_values(section_title, CONFIG["section_map"], query='name')
+                emoji = map_values(section_title, CONFIG["section_map"], query='emoji')
                 heading_weight = "#" if CONFIG['separate_files'] == 'y' else "##"
-                write_heading(md_file, heading_weight, str(section), mapping)
+                write_heading(md_file, heading_weight, heading, emoji)
 
             # Get unique importance values within the section
             unique_importance = df_section["Importance"].astype(str).unique()
@@ -121,9 +111,10 @@ def write_section_md(output_md, df_input, unique_sections, df_map):
                 df_section_importance = df_section[df_section["Importance"] == importance]
                 
                 # Write importance heading with emoji function
-                mapping = CONFIG['importance_map']
+                heading = map_values(importance, CONFIG["importance_map"], query='name')
+                emoji = map_values(importance, CONFIG["importance_map"], query='emoji')
                 heading_weight = "##" if CONFIG['separate_files'].lower() == 'y' else "###"
-                write_heading(md_file, heading_weight, importance, mapping)
+                write_heading(md_file, heading_weight, heading, emoji)
 
                 write_table(md_file, df_section_importance, df_map)
 
@@ -149,7 +140,7 @@ def write_extras_md(md_file, df_map_row):
             values = df_map_row[column_header].values
             if len(values) > 0:
                 heading_type = "####" if CONFIG['separate_files'].lower() == 'y' else "#####"
-                write_heading(md_file, heading_type, column_header, mapping=None)
+                write_heading(md_file, heading_type, column_header, emoji=None)
                 md_file.write(f"{values[0]} ")
                 md_file.write("\n")
             md_file.write("\n")
@@ -172,7 +163,7 @@ def write_table_row(md_file, row, df_map):
         if pd.isna(hint):
             hint = row.get("Hint", "")
         if pd.isna(hint_type):
-            hint_type = map_importance(row.get("Warning Type", ""), query='name')
+            hint_type = map_values(row.get("Warning Type", ""), CONFIG['warning_type_map'], query='name')
         if pd.isna(description):
             description = row.get("Description", "")
         if pd.isna(learn_more):
@@ -180,7 +171,7 @@ def write_table_row(md_file, row, df_map):
     else:
         # Fallback to input data if df_map_row is empty
         hint = row.get("Hint", "")
-        hint_type = map_importance(row.get("Warning Type", ""), query='name')
+        hint_type = map_values(row.get("Warning Type", ""), CONFIG['warning_type_map'], query='name')
         description = row.get("Description", "")
         learn_more = row.get("Learn More", "")
 
@@ -195,7 +186,7 @@ def write_table_row(md_file, row, df_map):
     linked_urls = f"[{urls}]({sheet_url})" if CONFIG['include_links'] == 'y' else urls
     # Calculate Priority
     print(f"Importance: {importance}")
-    importance_value = float(CONFIG['importance_map'].get(importance, {}).get('value', ''))
+    importance_value = float(map_values(importance, CONFIG['importance_map'], 'value'))
     priority = f"{round(impacted_pages * ((importance_value * 2) / 10), 2)}%"
 
     if CONFIG['length'] == 'long':
