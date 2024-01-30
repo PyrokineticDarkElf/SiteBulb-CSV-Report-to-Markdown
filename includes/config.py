@@ -4,7 +4,7 @@ CONFIG = {
     'output_folder': './output',
     'data_folder': './data',
     'length': 'long', # 'short' or 'long' to control how much data is presented.
-    'extra_columns': ['Meaning', 'Risks', 'How to fix'], # Include extra columns
+    'extra_columns': [], # Include extra columns e.g. ['Column Name 1', 'Column Name 2', 'Column Name 3']
     'separate_files': 'y', # 'y' or 'n' to create separate files for each section.
     'section_title': 'y', # 'y' or 'n' to display a title for the section.
     'short_file_name': 'Report.md',
