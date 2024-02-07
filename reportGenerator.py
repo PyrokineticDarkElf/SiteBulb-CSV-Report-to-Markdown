@@ -8,13 +8,17 @@ def load_csv(file_path):
     return pd.read_csv(file_path)
 
 def map_values(value, query_map, query):
-    # If the value is not in the importance map, use the default values for 'Unknown'
-    default_values = next((values for values in query_map.values() if values.get(query, 0) == 0), {})
+    # If the value is not in the importance map, use the entry with 'value': 0 as fallback
+    fallback_entry = query_map.get('Unknown', {'name': 'Unknown', 'value': 0, 'emoji': '⚫'})
     
-    mapped_value = query_map.get(value, default_values).get(query, 0)
+    # Retrieve the fallback value dynamically from the fallback entry
+    fallback_value = fallback_entry.get(query, fallback_entry[query])
+
+    # Get the mapped value from the query_map or use the fallback_value
+    mapped_value = query_map.get(value, fallback_entry).get(query, fallback_value)
+
     print(f"Mapping Importance: Value={value}, Mapped Value={mapped_value}")
     return mapped_value
-
 
 
 def find_input_csv():
@@ -29,7 +33,7 @@ def find_input_csv():
 
 def write_heading(md_file, heading_weight, heading, emoji):
     if emoji != None:
-        compiled_heading = f"{heading_weight} {emoji}{heading}"
+        compiled_heading = f"{heading_weight} {emoji} {heading}"
     else:
         compiled_heading = f"{heading_weight} {heading}"
     # Write heading with emoji
@@ -60,7 +64,7 @@ def create_markdown():
 
     # Create markdown file
     if CONFIG['separate_files'] == 'y':
-        print(f"All sections: {unique_sections}")
+        # print(f"All sections: {unique_sections}")
         
         # Iterate through unique section headings
         for section in unique_sections:
@@ -71,14 +75,13 @@ def create_markdown():
             write_section_md(output_md, df_input, str(section), df_map)
             print(f"Markdown file '{output_md}' created successfully.")
     else:
-        print(f"All sections: {unique_sections}")
+        # print(f"All sections: {unique_sections}")
         print(f"Starting " + CONFIG['short_file_name'] + ".")
         # Create markdown file
         output_md = os.path.join(CONFIG['output_folder'], CONFIG['short_file_name'])
         # Call write section function
         write_section_md(output_md, df_input, str(unique_sections), df_map)        
         print(f"Markdown file '{output_md}' created successfully.")
-
 
 
 
@@ -97,6 +100,9 @@ def write_section_md(output_md, df_input, unique_sections, df_map):
                 # Write section heading with emoji function
                 section_title = str(section)
                 heading = map_values(section_title, CONFIG["section_map"], query='name')
+                if heading == 'Unknown':
+                    heading = section_title
+                print(heading)
                 emoji = map_values(section_title, CONFIG["section_map"], query='emoji')
                 heading_weight = "#" if CONFIG['separate_files'] == 'y' else "##"
                 write_heading(md_file, heading_weight, heading, emoji)
@@ -154,7 +160,12 @@ def write_table_row(md_file, row, df_map):
     df_map_row = df_map[df_map['Hint'] == hint]
 
     if not df_map_row.empty:
-        hint = df_map_row.get("Hint", "").iloc[0]
+        # Use the custom hint or fallback to the mappable hint
+        if df_map_row.get("Hint Column"):
+            hint = df_map_row.get("Hint Column", "").iloc[0]
+        else:
+            hint = df_map_row.get("Hint", "").iloc[0]
+
         hint_type = df_map_row.get("Type", "").iloc[0]
         description = df_map_row.get("Description", "").iloc[0]
         learn_more = df_map_row.get("Learn More", "").iloc[0]
@@ -182,10 +193,10 @@ def write_table_row(md_file, row, df_map):
     sheet_url = row.get("Sheet URL", "")
 
     # Add Links
-    linked_hint = f"[{hint}]({learn_more})" if CONFIG['include_links'] == 'y' else hint
-    linked_urls = f"[{urls}]({sheet_url})" if CONFIG['include_links'] == 'y' else urls
+    linked_hint = f"[{hint}]({learn_more})" if CONFIG['include_resource_links'] == 'y' else hint
+    linked_urls = f"[{urls}]({sheet_url})" if CONFIG['include_sheets_links'] == 'y' else urls
     # Calculate Priority
-    print(f"Importance: {importance}")
+    # print(f"Importance: {importance}")
     importance_value = float(map_values(importance, CONFIG['importance_map'], 'value'))
     priority = f"{round(impacted_pages * ((importance_value * 2) / 10), 2)}%"
 
