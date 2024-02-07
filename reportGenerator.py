@@ -3,6 +3,7 @@ import pandas as pd
 from urllib.parse import quote
 import re
 from includes.config import CONFIG
+import html
 
 def load_csv(file_path):
     return pd.read_csv(file_path)
@@ -147,7 +148,7 @@ def write_extras_md(md_file, df_map_row):
             if len(values) > 0:
                 heading_type = "####" if CONFIG['separate_files'].lower() == 'y' else "#####"
                 write_heading(md_file, heading_type, column_header, emoji=None)
-                md_file.write(f"{values[0]} ")
+                md_file.write(f"{html.escape(values[0])} ")
                 md_file.write("\n")
             md_file.write("\n")
 
@@ -162,28 +163,28 @@ def write_table_row(md_file, row, df_map):
     if not df_map_row.empty:
         # Use the custom hint or fallback to the mappable hint
         if df_map_row.get("Hint Column"):
-            hint = df_map_row.get("Hint Column", "").iloc[0]
+            hint = html.escape(df_map_row.get("Hint Column", "").iloc[0])
         else:
-            hint = df_map_row.get("Hint", "").iloc[0]
+            hint = html.escape(df_map_row.get("Hint", "").iloc[0])
 
         hint_type = df_map_row.get("Type", "").iloc[0]
-        description = df_map_row.get("Description", "").iloc[0]
+        description = html.escape(df_map_row.get("Description", "").iloc[0])
         learn_more = df_map_row.get("Learn More", "").iloc[0]
 
         # Fallback to input data if there's no value in df_map
         if pd.isna(hint):
-            hint = row.get("Hint", "")
+            hint = html.escape(row.get("Hint", ""))
         if pd.isna(hint_type):
             hint_type = map_values(row.get("Warning Type", ""), CONFIG['warning_type_map'], query='name')
         if pd.isna(description):
-            description = row.get("Description", "")
+            description = html.escape(row.get("Description", ""))
         if pd.isna(learn_more):
             learn_more = row.get("Learn More", "")
     else:
         # Fallback to input data if df_map_row is empty
-        hint = row.get("Hint", "")
+        hint = html.escape(row.get("Hint", ""))
         hint_type = map_values(row.get("Warning Type", ""), CONFIG['warning_type_map'], query='name')
-        description = row.get("Description", "")
+        description = html.escape(row.get("Description", ""))
         learn_more = row.get("Learn More", "")
 
     # Src data
