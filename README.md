@@ -23,7 +23,7 @@ The report can then be generated, linking items by type of issue, and injecting 
     Or explicitly use Python 3:
 
     ```bash
-    python reportGenerator.py
+    python3 reportGenerator.py
     ```
 5. The generated reports will be available in the `./output` folder.
 
