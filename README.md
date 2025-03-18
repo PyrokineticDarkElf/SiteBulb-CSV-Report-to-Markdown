@@ -16,12 +16,18 @@ The report can then be generated, linking items by type of issue, and injecting 
 2. Place your input CSV files in the `./input` folder.
 3. Configure the script using the `CONFIG` dictionary in `/includes/config.py`.
 4. Run the script using the following command:
+    ```bash
+    python reportGenerator.py
+    ```
+    
+    Or explicitly use Python 3:
 
-```bash
-python reportGenerator.py
-```
-
+    ```bash
+    python reportGenerator.py
+    ```
 5. The generated reports will be available in the `./output` folder.
+
+---
 
 ## Configuration
 The script uses a configuration dictionary (`CONFIG`) to customize its behavior. Key configurations include:
