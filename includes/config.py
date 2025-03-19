@@ -8,7 +8,8 @@ CONFIG = {
     'separate_files': 'y', # 'y' or 'n' to create separate files for each section.
     'section_title': 'y', # 'y' or 'n' to display a title for the section.
     'short_file_name': 'Report.md',
-    'include_links': 'y', # 'y' or 'n'
+    'include_resource_links': 'y', # 'y' or 'n'
+    'include_sheets_links': 'y', # 'y' or 'n'
     'importance_map': {
         '4 - Critical': {
             'name': 'Critical',
